@@ -1,10 +1,12 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Products from './pages/Products';
 import Cart from './pages/Cart';
+import CurrentCart from './pages/CurrentCart';
+import OrderHistory from './pages/OrderHistory';
 import Checkout from './pages/Checkout';
 import OrderSuccess from './pages/OrderSuccess';
 import Login from './pages/Login';
@@ -22,7 +24,11 @@ function App() {
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/products" element={<Products />} />
-                <Route path="/cart" element={<Cart />} />
+                <Route path="/cart" element={<Cart />}>
+                  <Route index element={<Navigate to="/cart/current" replace />} />
+                  <Route path="current" element={<CurrentCart />} />
+                  <Route path="orders" element={<OrderHistory />} />
+                </Route>
                 <Route path="/checkout" element={<Checkout />} />
                 <Route path="/order-success" element={<OrderSuccess />} />
                 <Route path="/login" element={<Login />} />
