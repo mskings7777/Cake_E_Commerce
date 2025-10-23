@@ -1,33 +1,30 @@
 const express = require('express');
 const Order = require('../models/Order');
-const Cart = require('../models/Cart');
 const auth = require('../middleware/auth');
 
 const router = express.Router();
 
 router.post('/', auth, async (req, res) => {
   try {
-    const cart = await Cart.findOne({ userId: req.userId });
+    const { items, totalAmount, shippingCost, paymentMethod, paymentDetails, shippingAddress } = req.body;
 
-    if (!cart || cart.items.length === 0) {
-      return res.status(400).json({ error: 'Cart is empty' });
+    if (!items || items.length === 0) {
+      return res.status(400).json({ error: 'No items in order' });
     }
-
-    const totalAmount = cart.items.reduce(
-      (sum, item) => sum + item.price * item.quantity,
-      0
-    );
 
     const order = new Order({
       userId: req.userId,
-      items: cart.items,
-      totalAmount
+      username: req.user.username,
+      userEmail: req.user.email,
+      items,
+      totalAmount,
+      shippingCost: shippingCost || 5.99,
+      paymentMethod,
+      paymentDetails,
+      shippingAddress
     });
 
     await order.save();
-
-    cart.items = [];
-    await cart.save();
 
     res.status(201).json(order);
   } catch (error) {

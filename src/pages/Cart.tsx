@@ -71,7 +71,9 @@ const Cart = () => {
           <span>Total:</span>
           <span>${(getCartTotal() + 5.99).toFixed(2)}</span>
         </div>
-        <button className="btn-checkout">Proceed to Checkout</button>
+        <Link to="/checkout" className="btn-checkout">
+          Proceed to Checkout
+        </Link>
       </div>
     </div>
   );

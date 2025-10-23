@@ -5,16 +5,31 @@ const auth = require('../middleware/auth');
 
 const router = express.Router();
 
+router.get('/check-username/:username', async (req, res) => {
+  try {
+    const { username } = req.params;
+    const user = await User.findOne({ username: username.toLowerCase() });
+    res.json({ available: !user });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 router.post('/signup', async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, username, email, password } = req.body;
 
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
+    const existingEmail = await User.findOne({ email });
+    if (existingEmail) {
       return res.status(400).json({ error: 'Email already registered' });
     }
 
-    const user = new User({ name, email, password });
+    const existingUsername = await User.findOne({ username: username.toLowerCase() });
+    if (existingUsername) {
+      return res.status(400).json({ error: 'Username already taken' });
+    }
+
+    const user = new User({ name, username, email, password });
     await user.save();
 
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
@@ -25,6 +40,7 @@ router.post('/signup', async (req, res) => {
       user: {
         id: user._id,
         name: user.name,
+        username: user.username,
         email: user.email
       },
       token
@@ -56,6 +72,7 @@ router.post('/login', async (req, res) => {
       user: {
         id: user._id,
         name: user.name,
+        username: user.username,
         email: user.email
       },
       token
@@ -70,6 +87,7 @@ router.get('/me', auth, async (req, res) => {
     user: {
       id: req.user._id,
       name: req.user.name,
+      username: req.user.username,
       email: req.user.email
     }
   });

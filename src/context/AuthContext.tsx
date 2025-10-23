@@ -7,6 +7,7 @@ const API_URL = 'http://localhost:5001/api';
 interface User {
   id: string;
   name: string;
+  username: string;
   email: string;
 }
 
@@ -14,9 +15,10 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   login: (email: string, password: string) => Promise<void>;
-  signup: (name: string, email: string, password: string) => Promise<void>;
+  signup: (name: string, username: string, email: string, password: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
+  checkUsername: (username: string) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -41,6 +43,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const checkUsername = async (username: string): Promise<boolean> => {
+    try {
+      const response = await axios.get(`${API_URL}/auth/check-username/${username}`);
+      return response.data.available;
+    } catch (error) {
+      return false;
+    }
+  };
+
   const login = async (email: string, password: string) => {
     const response = await axios.post(`${API_URL}/auth/login`, { email, password });
     const { token, user } = response.data;
@@ -51,8 +62,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
   };
 
-  const signup = async (name: string, email: string, password: string) => {
-    const response = await axios.post(`${API_URL}/auth/signup`, { name, email, password });
+  const signup = async (name: string, username: string, email: string, password: string) => {
+    const response = await axios.post(`${API_URL}/auth/signup`, { name, username, email, password });
     const { token, user } = response.data;
     
     setToken(token);
@@ -76,7 +87,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         login,
         signup,
         logout,
-        isAuthenticated: !!user
+        isAuthenticated: !!user,
+        checkUsername
       }}
     >
       {children}
